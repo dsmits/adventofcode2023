@@ -1,17 +1,36 @@
 from pathlib import Path
-from solutions import extract_all_calibrations
+
+from solutions import sum_all_calibrations, extract_calibration
 
 TEST_ROOT = Path(__file__).parent
 
 
-def get_input(n: int):
-    with (TEST_ROOT / "input" / f"{n}.txt").open("r") as f:
+def get_input(n: str):
+    with (TEST_ROOT / "input" / f"{n}").open("r") as f:
         return f.readlines()
 
 
-def test_decode_calibration():
-    input_ = get_input(1)
+def test_decode_calibration_digits():
+    input_ = get_input("1.txt")
 
-    calibrations = extract_all_calibrations(input_)
+    result = sum_all_calibrations(input_)
 
-    assert calibrations == [12, 38, 15, 77]
+    assert result == 142
+
+
+def test_decode_calibration_written_digits():
+    input_ = get_input("1_2.txt")
+    summed = sum_all_calibrations(input_)
+
+    assert summed == 281
+
+
+def test_decode_one_written_number_counts_double():
+    calibration = extract_calibration("one")
+
+    assert calibration == 11
+
+
+def test_decode_overlapping_words():
+    calibration = extract_calibration("twone")
+    assert calibration == 21
