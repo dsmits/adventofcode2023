@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from solutions import sum_all_calibrations, extract_calibration
+from solutions import sum_all_calibrations, extract_calibration, which_games_possible
 
 TEST_ROOT = Path(__file__).parent
 
@@ -34,3 +34,11 @@ def test_decode_one_written_number_counts_double():
 def test_decode_overlapping_words():
     calibration = extract_calibration("twone")
     assert calibration == 21
+
+
+def test_possible_games():
+    input_ = get_input("2.txt")
+
+    possible_games = which_games_possible(input_)
+
+    assert list(possible_games) == [1, 2, 5]
