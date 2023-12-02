@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from solutions import sum_all_calibrations, extract_calibration, which_games_possible
+from solutions import sum_all_calibrations, extract_calibration, which_games_possible, \
+    compute_cube_powers
 
 TEST_ROOT = Path(__file__).parent
 
@@ -42,3 +43,11 @@ def test_possible_games():
     possible_games = which_games_possible(input_)
 
     assert list(possible_games) == [1, 2, 5]
+
+
+def test_cube_power():
+    input_ = get_input("2.txt")
+
+    powers = compute_cube_powers(input_)
+
+    assert list(powers) == [48, 12, 1560, 630, 36]
