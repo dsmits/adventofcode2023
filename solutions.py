@@ -12,15 +12,21 @@ log_level = os.environ.get("LOG_LEVEL", "INFO")
 logging.basicConfig(level=log_level)
 _logger = logging.getLogger()
 
+# Day 1
 NUMBER_PATTERN = r"(?=(one|two|three|four|five|six|seven|eight|nine|\d))"
 NUMBER_PATTERN = re.compile(NUMBER_PATTERN)
 TEXT_NUMBER_MAP = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+
+# Day 2
 GAME_ID_PATTERN = re.compile(r"Game (\d+): ")
 MAX_RED_CUBES = 12
 MAX_GREEN_CUBES = 13
 MAX_BLUE_CUBES = 14
-
 CubeRound = namedtuple("CubeRound", ["red", "green", "blue"])
+
+# Day 3
+SYMBOL_PATTERN = re.compile(r"[^\d|.|\n]")
+PART_NUMBER_PATTERN = re.compile(r"\d+")
 
 
 def text_to_number(text: str) -> int:
@@ -38,6 +44,35 @@ def day1():
     input_ = get_input(1)
     summed = sum_all_calibrations(input_)
 
+    return summed
+
+
+def extract_calibration(line: str) -> int:
+    matches = NUMBER_PATTERN.finditer(line)
+    numbers = [m.group(1) for m in matches]
+
+    calibration_nums = numbers[0], numbers[-1]
+    calibration_nums = [convert_calibration_num(num) for num in calibration_nums]
+    joined = "".join(calibration_nums)
+    result = int(joined)
+
+    return result
+
+
+def convert_calibration_num(num: str):
+    if re.match(r"\d", num):
+        return num
+    else:
+        return str(text_to_number(num))
+
+
+def sum_all_calibrations(input_: list[str]) -> int:
+    summed = 0
+    for idx, line in enumerate(input_):
+        extracted = extract_calibration(line)
+        summed += extracted
+
+        _logger.debug(f"{idx}: from {line} to {extracted}")
     return summed
 
 
@@ -117,34 +152,68 @@ def game_is_possible(red: int, green: int, blue: int, max_red: int, max_green: i
     return red <= max_red & green <= max_green & blue <= max_blue
 
 
-def extract_calibration(line: str) -> int:
-    matches = NUMBER_PATTERN.finditer(line)
-    numbers = [m.group(1) for m in matches]
+def day3():
+    input_ = get_input(3)
 
-    calibration_nums = numbers[0], numbers[-1]
-    calibration_nums = [convert_calibration_num(num) for num in calibration_nums]
-    joined = "".join(calibration_nums)
-    result = int(joined)
-
-    return result
+    return sum_part_numbers(input_)
 
 
-def convert_calibration_num(num: str):
-    if re.match(r"\d", num):
-        return num
-    else:
-        return str(text_to_number(num))
+def sum_part_numbers(lines):
+    return sum(get_part_numbers(lines))
 
 
-def sum_all_calibrations(input_: list[str]) -> int:
-    summed = 0
-    for idx, line in enumerate(input_):
-        extracted = extract_calibration(line)
-        summed += extracted
+def get_part_numbers(lines):
+    for idx, line in enumerate(lines):
+        for match in PART_NUMBER_PATTERN.finditer(line):
+            span = match.span()
+            column_limits = max(span[0] - 1, 0), min(span[1] + 1, len(line) - 1)
 
-        _logger.debug(f"{idx}: from {line} to {extracted}")
-    return summed
+            column_coords = range(*column_limits)
+            row_coords = [idx]
+
+            if idx > 1:
+                row_coords.append(idx - 1)
+            if idx < len(lines) - 1:
+                row_coords.append(idx + 1)
+
+            if contains_symbol(row_coords, column_coords, lines):
+                yield int(match.group())
+
+
+def contains_symbol(row_coords, column_coords, lines):
+    for col in column_coords:
+        for row in row_coords:
+            if SYMBOL_PATTERN.match(lines[row][col]):
+                return True
+
+    return False
+
+
+def is_symbol(char: str) -> bool:
+    return re.match(r"\d|.", char) is None
+
+
+def extract_full_number(idx, line):
+    previous = idx
+    start = idx
+    end = idx
+    # Find front
+    for i in range(idx, 0):
+        if not line[i].isdigit():
+            start = previous
+            break
+        previous = i
+
+    # Find end
+    previous = idx
+    for i in range(idx, len(line)):
+        if not line[i].isdigit():
+            end = previous
+            break
+        previous = i
+
+    return int(line[start:end + 1])
 
 
 if __name__ == "__main__":
-    clize.run(day1, day2)
+    clize.run(day1, day2, day3)
